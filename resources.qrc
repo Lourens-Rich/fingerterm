@@ -25,6 +25,7 @@
         <file>data/french.layout</file>
         <file>data/german.layout</file>
         <file>data/qwertz.layout</file>
+		<file>data/russian.layout</file>
         <file>qml/LayoutWindow.qml</file>
     </qresource>
 </RCC>

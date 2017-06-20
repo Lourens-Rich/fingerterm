@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     copyFileFromResources(":/data/french.layout", util.configPath()+"/french.layout");
     copyFileFromResources(":/data/german.layout", util.configPath()+"/german.layout");
     copyFileFromResources(":/data/qwertz.layout", util.configPath()+"/qwertz.layout");
+    copyFileFromResources(":/data/russian.layout", util.configPath()+"/russian.layout");
 
     KeyLoader keyLoader;
     keyLoader.setUtil(&util);
