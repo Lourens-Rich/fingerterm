@@ -1,5 +1,5 @@
 Name: fingerterm
-Version: 1.3.2
+Version: 1.3.7
 Release: 1
 Summary: A terminal emulator with a custom virtual keyboard
 Group: System/Base
@@ -14,8 +14,6 @@ BuildRequires: pkgconfig(Qt0Feedback)
 BuildRequires: pkgconfig(nemonotifications-qt5) >= 1.0.4
 Requires: qt5-qtdeclarative-import-xmllistmodel
 Requires: qt5-qtdeclarative-import-window2
-Obsoletes: meego-terminal <= 0.2.2
-Provides: meego-terminal > 0.2.2
 
 %description
 %{summary}.
@@ -24,7 +22,9 @@ Provides: meego-terminal > 0.2.2
 %defattr(-,root,root,-)
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
-
+%{_datadir}/%{name}/*.qml
+%{_datadir}/%{name}/data/*
+%{_datadir}/%{name}/icons/*
 
 %prep
 %setup -q -n %{name}-%{version}

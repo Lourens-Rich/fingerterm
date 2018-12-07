@@ -87,7 +87,20 @@ Item {
             property int scrollBarWidth: 6*window.pixelRatio
 
             anchors.fill: parent
-            color: bellTimer.running ? "#ffffff" : bgcolor
+            color: bgcolor
+
+            Rectangle {
+                id: bellTimerRect
+                visible: opacity > 0
+                opacity: bellTimer.running ? 0.5 : 0.0
+                anchors.fill: parent
+                color: "#ffffff"
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: bellTimer.interval
+                    }
+                }
+            }
 
             Lineview {
                 id: lineView
@@ -184,14 +197,14 @@ Item {
                     id: menuImg
 
                     anchors.centerIn: parent
-                    source: "qrc:/icons/menu.png"
+                    source: "icons/menu.png"
                     scale: window.pixelRatio
                 }
             }
 
             Image {
                 // terminal buffer scroll indicator
-                source: "qrc:/icons/scroll-indicator.png"
+                source: "icons/scroll-indicator.png"
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
                 visible: textrender.showBufferScrollIndicator
@@ -236,8 +249,7 @@ Item {
 
             Timer {
                 id: bellTimer
-
-                interval: 80
+                interval: 120
             }
 
             Connections {

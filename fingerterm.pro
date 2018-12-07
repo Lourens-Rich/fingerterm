@@ -15,6 +15,11 @@ isEmpty(DEFAULT_FONT) {
     DEFAULT_FONT = monospace
 }
 
+isEmpty(DEPLOYMENT_PATH) {
+    DEPLOYMENT_PATH = /usr/share/$$TARGET
+}
+
+DEFINES += DEPLOYMENT_PATH=\\\"$$DEPLOYMENT_PATH\\\"
 DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"
 
 TEMPLATE = app
@@ -40,8 +45,7 @@ SOURCES += \
     util.cpp \
     keyloader.cpp
 
-OTHER_FILES += \
-    qml/Main.qml \
+qml.files = qml/Main.qml \
     qml/Keyboard.qml \
     qml/Key.qml \
     qml/Lineview.qml \
@@ -51,9 +55,34 @@ OTHER_FILES += \
     qml/UrlWindow.qml \
     qml/LayoutWindow.qml \
     qml/PopupWindow.qml
+qml.path = $$DEPLOYMENT_PATH
+INSTALLS += qml
 
 RESOURCES += \
     resources.qrc
+
+icons.files = icons/backspace.png \
+    icons/down.png \
+    icons/enter.png \
+    icons/left.png \
+    icons/menu.png \
+    icons/right.png \
+    icons/scroll-indicator.png \
+    icons/shift.png \
+    icons/tab.png \
+    icons/up.png
+icons.path = $$DEPLOYMENT_PATH/icons
+INSTALLS += icons
+
+userdata.files = data/menu.xml \
+    data/english.layout \
+    data/finnish.layout \
+    data/french.layout \
+    data/german.layout \
+    data/qwertz.layout \
+    data/russian.layout
+userdata.path = $$DEPLOYMENT_PATH/data
+INSTALLS += userdata
 
 target.path = /usr/bin
 INSTALLS += target

@@ -40,8 +40,6 @@ extern "C" {
 #include "version.h"
 #include "keyloader.h"
 
-static void copyFileFromResources(QString from, QString to);
-
 int main(int argc, char *argv[])
 {
     QString settings_path(QDir::homePath() + "/.config/FingerTerm");
@@ -73,27 +71,18 @@ int main(int argc, char *argv[])
         if(execCmd.isEmpty()) {
             execCmd = settings->value("general/execCmd").toString();
         }
-        if(execCmd.isEmpty()) {
-            // execute the user's default shell
-            passwd *pwdstruct = getpwuid(getuid());
-            execCmd = QString(pwdstruct->pw_shell);
-            execCmd.append(" --login");
-        }
 
         delete settings; // don't need 'em here
 
-        QStringList execParts = execCmd.split(' ', QString::SkipEmptyParts);
-        if(execParts.length()==0)
-            exit(0);
-        char *ptrs[execParts.length()+1];
-        for(int i=0; i<execParts.length(); i++) {
-            ptrs[i] = new char[execParts.at(i).toLatin1().length()+1];
-            memcpy(ptrs[i], execParts.at(i).toLatin1().data(), execParts.at(i).toLatin1().length());
-            ptrs[i][execParts.at(i).toLatin1().length()] = 0;
+        passwd *pwdstruct = getpwuid(getuid());
+        char *shell = pwdstruct->pw_shell;
+        if (execCmd.isEmpty()) {
+            // execute the user's default shell
+            execl(shell, shell, "--login", (char*)NULL);
+        } else {
+            execl(shell, shell, "-c", qPrintable(execCmd), (char*)NULL);
         }
-        ptrs[execParts.length()] = 0;
 
-        execvp(execParts.first().toLatin1(), ptrs);
         exit(0);
     }
 
@@ -101,11 +90,15 @@ int main(int argc, char *argv[])
 
     QScreen* sc = app.primaryScreen();
     if(sc){
-        sc->setOrientationUpdateMask(Qt::PrimaryOrientation
-                                     | Qt::LandscapeOrientation
-                                     | Qt::PortraitOrientation
-                                     | Qt::InvertedLandscapeOrientation
-                                     | Qt::InvertedPortraitOrientation);
+        QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
+                | Qt::PortraitOrientation
+                | Qt::LandscapeOrientation
+                | Qt::InvertedPortraitOrientation
+                | Qt::InvertedLandscapeOrientation;
+        if (settings->contains("ui/orientationMask")) {
+            mask &= settings->value("ui/orientationMask").toInt();
+        }
+        sc->setOrientationUpdateMask(mask);
     }
 
     qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");
@@ -130,15 +123,6 @@ int main(int argc, char *argv[])
     TextRender::setTerminal(&term);
 
     QString startupErrorMsg;
-
-    // copy the default config files to the config dir if they don't already exist
-    copyFileFromResources(":/data/menu.xml", util.configPath()+"/menu.xml");
-    copyFileFromResources(":/data/english.layout", util.configPath()+"/english.layout");
-    copyFileFromResources(":/data/finnish.layout", util.configPath()+"/finnish.layout");
-    copyFileFromResources(":/data/french.layout", util.configPath()+"/french.layout");
-    copyFileFromResources(":/data/german.layout", util.configPath()+"/german.layout");
-    copyFileFromResources(":/data/qwertz.layout", util.configPath()+"/qwertz.layout");
-    copyFileFromResources(":/data/russian.layout", util.configPath()+"/russian.layout");
 
     KeyLoader keyLoader;
     keyLoader.setUtil(&util);
@@ -165,7 +149,8 @@ int main(int argc, char *argv[])
     QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
 
     view.setResizeMode(QQuickView::SizeRootObjectToView);
-    view.setSource(QUrl("qrc:/qml/Main.qml"));
+    view.engine()->addImportPath(QStringLiteral(DEPLOYMENT_PATH));
+    view.setSource(QUrl::fromLocalFile(QStringLiteral(DEPLOYMENT_PATH) + QDir::separator() + QStringLiteral("Main.qml")));
 
     QObject *root = view.rootObject();
     if(!root)
@@ -183,20 +168,4 @@ int main(int argc, char *argv[])
         qFatal("pty failure");
 
     return app.exec();
-}
-
-static void copyFileFromResources(QString from, QString to)
-{
-    // copy a file from resources to the config dir if it does not exist there
-    QFileInfo toFile(to);
-    if(!toFile.exists()) {
-        QFile newToFile(toFile.absoluteFilePath());
-        QResource res(from);
-        if (newToFile.open(QIODevice::WriteOnly)) {
-            newToFile.write( reinterpret_cast<const char*>(res.data()) );
-            newToFile.close();
-        } else {
-            qWarning() << "Failed to copy default config from resources to" << toFile.filePath();
-        }
-    }
 }
